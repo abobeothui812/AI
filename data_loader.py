@@ -15,3 +15,21 @@ def load_road_network(place_name=PLACE_NAME, network_type="drive"):
     except Exception as e:
         print(f"Lỗi khi tải mạng lưới đường: {e}")
         return None
+
+
+def load_taxi_trip_data(parquet_file_path=YELLOW_TAXI_DATA_FILE):
+    """Tải dữ liệu chuyến đi taxi từ file Parquet."""
+    print(f"Đang đọc file dữ liệu taxi: {parquet_file_path}...")
+    try:
+        df_taxi = pd.read_parquet(parquet_file_path)
+        print("Đọc file dữ liệu taxi hoàn tất!")
+        # Chuyển đổi cột thời gian cơ bản
+        df_taxi['tpep_pickup_datetime'] = pd.to_datetime(df_taxi['tpep_pickup_datetime'])
+        df_taxi['tpep_dropoff_datetime'] = pd.to_datetime(df_taxi['tpep_dropoff_datetime'])
+        return df_taxi
+    except FileNotFoundError:
+        print(f"LỖI: Không tìm thấy file taxi {parquet_file_path}.")
+        return None
+    except Exception as e:
+        print(f"Lỗi khi đọc file dữ liệu taxi: {e}")
+        return None
