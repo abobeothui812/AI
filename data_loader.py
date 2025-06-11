@@ -4,7 +4,6 @@ import geopandas as gpd
 import osmnx as ox
 from config import PLACE_NAME, TAXI_ZONES_SHAPEFILE_PATH, YELLOW_TAXI_DATA_FILE
 
-
 def load_road_network(place_name=PLACE_NAME, network_type="drive"):
     """Tải dữ liệu mạng lưới đường từ OpenStreetMap."""
     print(f"Đang tải dữ liệu mạng lưới đường cho {place_name}...")
@@ -15,7 +14,6 @@ def load_road_network(place_name=PLACE_NAME, network_type="drive"):
     except Exception as e:
         print(f"Lỗi khi tải mạng lưới đường: {e}")
         return None
-
 
 def load_taxi_zones(shapefile_path=TAXI_ZONES_SHAPEFILE_PATH):
     """Tải dữ liệu shapefile của các Khu vực Taxi."""
@@ -33,8 +31,6 @@ def load_taxi_zones(shapefile_path=TAXI_ZONES_SHAPEFILE_PATH):
         print(f"Lỗi khi đọc Shapefile Khu vực Taxi: {e}")
         return None
 
-
-
 def load_taxi_trip_data(parquet_file_path=YELLOW_TAXI_DATA_FILE):
     """Tải dữ liệu chuyến đi taxi từ file Parquet."""
     print(f"Đang đọc file dữ liệu taxi: {parquet_file_path}...")
@@ -51,7 +47,6 @@ def load_taxi_trip_data(parquet_file_path=YELLOW_TAXI_DATA_FILE):
     except Exception as e:
         print(f"Lỗi khi đọc file dữ liệu taxi: {e}")
         return None
-
 
 if __name__ == '__main__':
     # Chạy thử các hàm load (chỉ khi chạy trực tiếp file này)

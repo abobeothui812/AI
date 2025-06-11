@@ -1,182 +1,139 @@
 # data_processor.py
 import pandas as pd
+import numpy as np
+import geopandas as gpd
+import osmnx as ox
+
 from config import (
     TARGET_BOROUGH, MIN_TRIP_DURATION_MINUTES, MAX_TRIP_DURATION_MINUTES,
     MIN_TRIP_DISTANCE_MILES, MIN_AVG_SPEED_MPH, MAX_AVG_SPEED_MPH
 )
 
 def filter_taxi_zones_by_borough(taxi_zones_gdf, borough_name=TARGET_BOROUGH):
-    """Lọc các khu vực taxi theo quận."""
-    if taxi_zones_gdf is None:
-        return None, []
-    manhattan_zones = taxi_zones_gdf[taxi_zones_gdf['borough'] == borough_name]
-    manhattan_location_ids = manhattan_zones['LocationID'].tolist()
-    print(f"Số lượng khu vực taxi ở {borough_name}: {len(manhattan_zones)}")
-    return manhattan_zones, manhattan_location_ids
-
+    if taxi_zones_gdf is None: return None, []
+    borough_zones = taxi_zones_gdf[taxi_zones_gdf['borough'] == borough_name]
+    borough_location_ids = borough_zones['LocationID'].tolist()
+    #print(f"Số lượng khu vực taxi ở {borough_name}: {len(borough_zones)}")
+    return borough_zones, borough_location_ids
 
 def initial_trip_data_cleaning(df_taxi):
-    """Làm sạch dữ liệu chuyến đi ban đầu và tính toán thời gian/tốc độ."""
-    if df_taxi is None:
-        return None
-
+    if df_taxi is None: return None
     df_cleaned = df_taxi.copy()
-    df_cleaned['trip_duration_seconds'] = \
-        (df_cleaned['tpep_dropoff_datetime'] - df_cleaned['tpep_pickup_datetime']).dt.total_seconds()
+    df_cleaned['trip_duration_seconds'] = (df_cleaned['tpep_dropoff_datetime'] - df_cleaned['tpep_pickup_datetime']).dt.total_seconds()
     df_cleaned['trip_duration_minutes'] = df_cleaned['trip_duration_seconds'] / 60
-
-    # Lọc cơ bản
     df_filtered = df_cleaned[
         (df_cleaned['trip_duration_minutes'] >= MIN_TRIP_DURATION_MINUTES) &
         (df_cleaned['trip_duration_minutes'] <= MAX_TRIP_DURATION_MINUTES) &
         (df_cleaned['trip_distance'] >= MIN_TRIP_DISTANCE_MILES)
-        ].copy()  # Sử dụng .copy()
-
-    # Tính tốc độ trung bình (mph)
-    # Đảm bảo trip_duration_seconds > 0 để tránh chia cho 0
+    ].copy()
     valid_duration_mask = df_filtered['trip_duration_seconds'] > 0
     df_filtered.loc[valid_duration_mask, 'average_speed_mph'] = \
         df_filtered.loc[valid_duration_mask, 'trip_distance'] / \
         (df_filtered.loc[valid_duration_mask, 'trip_duration_seconds'] / 3600)
-
-    # Lọc tốc độ bất thường
     if 'average_speed_mph' in df_filtered.columns:
         df_filtered = df_filtered[
             (df_filtered['average_speed_mph'] >= MIN_AVG_SPEED_MPH) &
             (df_filtered['average_speed_mph'] <= MAX_AVG_SPEED_MPH)
-            ]
-    else:  # Nếu không có chuyến nào thỏa mãn để tính average_speed_mph
-        print("Cảnh báo: Không có chuyến đi nào đủ điều kiện để tính average_speed_mph sau lọc cơ bản.")
-        # Tạo cột với giá trị NaN để tránh lỗi sau này nếu df_filtered không rỗng
-        if not df_filtered.empty:
-            df_filtered['average_speed_mph'] = pd.NA
-
+        ]
+    else:
+        if not df_filtered.empty: df_filtered['average_speed_mph'] = pd.NA
     print(f"Số chuyến đi sau khi lọc cơ bản và lọc tốc độ: {len(df_filtered)}")
     return df_filtered
 
-
 def filter_trips_by_location_ids(df_taxi_filtered, location_ids):
-    """Lọc các chuyến đi có điểm đón VÀ trả trong danh sách LocationID đã cho."""
-    if df_taxi_filtered is None or not location_ids:
-        return pd.DataFrame()  # Trả về DataFrame rỗng nếu đầu vào không hợp lệ
-
-    # Đảm bảo kiểu dữ liệu của ID là int để khớp
+    if df_taxi_filtered is None or not location_ids: return pd.DataFrame()
     df_filtered = df_taxi_filtered.copy()
-    if 'PULocationID' in df_filtered.columns:
-        df_filtered['PULocationID'] = df_filtered['PULocationID'].astype(int)
-    if 'DOLocationID' in df_filtered.columns:
-        df_filtered['DOLocationID'] = df_filtered['DOLocationID'].astype(int)
-
+    if 'PULocationID' in df_filtered.columns: df_filtered['PULocationID'] = df_filtered['PULocationID'].astype(int)
+    if 'DOLocationID' in df_filtered.columns: df_filtered['DOLocationID'] = df_filtered['DOLocationID'].astype(int)
     df_borough_trips = df_filtered[
         df_filtered['PULocationID'].isin(location_ids) &
         df_filtered['DOLocationID'].isin(location_ids)
-        ]
+    ]
     print(f"Số chuyến đi hoàn toàn trong các khu vực đã chọn: {len(df_borough_trips)}")
     return df_borough_trips
 
-
 def calculate_median_speed_by_time(df_borough_trips):
-    """Tính tốc độ trung vị theo giờ và ngày trong tuần."""
     if df_borough_trips is None or df_borough_trips.empty or 'average_speed_mph' not in df_borough_trips.columns:
-        print(
-            "Cảnh báo: Không có dữ liệu chuyến đi của quận hoặc thiếu cột 'average_speed_mph' để tính tốc độ trung vị.")
         return pd.Series(dtype='float64'), pd.Series(dtype='float64')
-
     df_analysis = df_borough_trips.copy()
-    df_analysis['pickup_hour'] = df_analysis['tpep_pickup_datetime'].dt.hour
-    df_analysis['pickup_day_of_week'] = df_analysis['tpep_pickup_datetime'].dt.dayofweek  # Monday=0, Sunday=6
-
+    df_analysis['pickup_hour'] = pd.to_datetime(df_analysis['tpep_pickup_datetime']).dt.hour
+    df_analysis['pickup_day_of_week'] = pd.to_datetime(df_analysis['tpep_pickup_datetime']).dt.dayofweek
     median_speed_by_hour = df_analysis.groupby('pickup_hour')['average_speed_mph'].median()
     median_speed_by_day_of_week = df_analysis.groupby('pickup_day_of_week')['average_speed_mph'].median()
-
-    # Đổi tên index cho ngày trong tuần
     days = ['Thứ Hai', 'Thứ Ba', 'Thứ Tư', 'Thứ Năm', 'Thứ Sáu', 'Thứ Bảy', 'Chủ Nhật']
     median_speed_by_day_of_week.index = median_speed_by_day_of_week.index.map(lambda x: days[x] if x < len(days) else x)
-
     return median_speed_by_hour, median_speed_by_day_of_week
 
+def calculate_spatial_features(taxi_zones_gdf, G):
+    """
+    Tính toán các đặc trưng không gian cho mỗi Khu vực Taxi.
+    Ví dụ: Mật độ đường sá.
+    """
+    print("Đang tính toán các đặc trưng không gian cho các khu vực taxi...")
+    if taxi_zones_gdf is None or G is None:
+        return pd.DataFrame()
 
-if __name__ == '__main__':
-    # Chạy thử các hàm xử lý (cần file dữ liệu đã tải)
-    from data_loader import load_taxi_zones, load_taxi_trip_data
+    # 1. Reproject sang CRS phẳng để tính toán chính xác (UTM Zone 18N cho NYC)
+    projected_crs = "EPSG:32618"
+    zones_proj = taxi_zones_gdf.to_crs(projected_crs)
+    _, edges_proj = ox.graph_to_gdfs(ox.project_graph(G, to_crs=projected_crs))
 
-    zones_gdf_test = load_taxi_zones()
-    _, manhattan_ids_test = filter_taxi_zones_by_borough(zones_gdf_test)
+    # 2. Tính diện tích cho mỗi zone (mét vuông)
+    zones_proj['zone_area_sqm'] = zones_proj.geometry.area
 
-    raw_taxi_data_test = load_taxi_trip_data()
-    cleaned_taxi_data_test = initial_trip_data_cleaning(raw_taxi_data_test)
+    # 3. Spatial join để tìm các đoạn đường trong mỗi zone
+    edges_in_zones = gpd.sjoin(edges_proj, zones_proj, how='inner', predicate='intersects')
 
-    if cleaned_taxi_data_test is not None and manhattan_ids_test:
-        manhattan_trips_test = filter_trips_by_location_ids(cleaned_taxi_data_test, manhattan_ids_test)
-        if not manhattan_trips_test.empty:
-            median_hr_test, median_dow_test = calculate_median_speed_by_time(manhattan_trips_test)
-            print("\nMedian speed by hour (test):\n", median_hr_test)
-            print("\nMedian speed by day of week (test):\n", median_dow_test)
+    # 4. Tính tổng chiều dài đường cho mỗi zone
+    road_length_per_zone = edges_in_zones.groupby('LocationID')['length'].sum()
+
+    # 5. Hợp nhất (merge) dữ liệu và tính toán đặc trưng
+    spatial_features_df = zones_proj[['LocationID', 'zone_area_sqm']].copy()
+    spatial_features_df = spatial_features_df.merge(road_length_per_zone.rename('total_road_length_m'), on='LocationID', how='left')
+    spatial_features_df['total_road_length_m'].fillna(0, inplace=True)
+
+    # Tính mật độ đường sá (m / m^2)
+    spatial_features_df['road_density'] = spatial_features_df['total_road_length_m'] / spatial_features_df['zone_area_sqm']
+    
+    print("Tính toán đặc trưng không gian hoàn tất.")
+    # Chỉ trả về các cột cần thiết
+    return spatial_features_df[['LocationID', 'road_density']]
 
 
 def create_ml_training_data(df_borough_trips):
     """
-    Tạo dữ liệu huấn luyện cho mô hình ML dự đoán tốc độ trung vị theo Zone, Giờ, Ngày.
-    Features: PULocationID, pickup_hour, pickup_day_of_week
-    Target: median_average_speed_mph
+    Tạo dữ liệu huấn luyện cho mô hình ML, bao gồm các đặc trưng thời gian tuần hoàn.
     """
     if df_borough_trips is None or df_borough_trips.empty or 'average_speed_mph' not in df_borough_trips.columns:
-        print("Cảnh báo: Không có dữ liệu chuyến đi của quận hoặc thiếu cột 'average_speed_mph' để tạo dữ liệu ML.")
-        return pd.DataFrame()  # Trả về DataFrame rỗng
+        return pd.DataFrame()
 
     df_ml = df_borough_trips.copy()
 
-    # Đảm bảo các cột thời gian đã được trích xuất
-    if 'pickup_hour' not in df_ml.columns:
-        df_ml['pickup_hour'] = pd.to_datetime(df_ml['tpep_pickup_datetime']).dt.hour
-    if 'pickup_day_of_week' not in df_ml.columns:  # Monday=0, Sunday=6
-        df_ml['pickup_day_of_week'] = pd.to_datetime(df_ml['tpep_pickup_datetime']).dt.dayofweek
+    # Trích xuất các thành phần thời gian cơ bản
+    df_ml['pickup_hour'] = pd.to_datetime(df_ml['tpep_pickup_datetime']).dt.hour
+    df_ml['pickup_day_of_week'] = pd.to_datetime(df_ml['tpep_pickup_datetime']).dt.dayofweek
 
-    # Tính tốc độ trung vị cho mỗi nhóm (ZoneID, Giờ, Ngày trong tuần)
-    # Đây sẽ là target 'y' của chúng ta
-    df_zone_hourly_daily_speed = df_ml.groupby(
-        ['PULocationID', 'pickup_hour', 'pickup_day_of_week']
-    )['average_speed_mph'].median().reset_index()
+    # --- TẠO ĐẶC TRƯNG THỜI GIAN TUẦN HOÀN (CYCLICAL FEATURES) ---
+    df_ml['hour_sin'] = np.sin(2 * np.pi * df_ml['pickup_hour']/24.0)
+    df_ml['hour_cos'] = np.cos(2 * np.pi * df_ml['pickup_hour']/24.0)
+    df_ml['day_sin'] = np.sin(2 * np.pi * df_ml['pickup_day_of_week']/7.0)
+    df_ml['day_cos'] = np.cos(2 * np.pi * df_ml['pickup_day_of_week']/7.0)
 
-    # Đổi tên cột target cho rõ ràng
-    df_zone_hourly_daily_speed.rename(columns={'average_speed_mph': 'target_median_speed_mph'}, inplace=True)
-
-    # Loại bỏ các dòng có target là NaN (nếu có, ví dụ do nhóm đó không có dữ liệu average_speed_mph hợp lệ)
-    df_zone_hourly_daily_speed.dropna(subset=['target_median_speed_mph'], inplace=True)
-
-    print(f"Đã tạo được {len(df_zone_hourly_daily_speed)} mẫu dữ liệu huấn luyện ML.")
-
-    # Các cột PULocationID, pickup_hour, pickup_day_of_week sẽ là features X
-    # Cột target_median_speed_mph sẽ là target y
-    return df_zone_hourly_daily_speed
-
-
-if __name__ == '__main__':
-    # ... (phần test cũ) ...
-    # Thêm test cho hàm mới
-    from data_loader import load_taxi_zones, load_taxi_trip_data  # Cần import lại nếu chạy file này độc lập
-
-    zones_gdf_test = load_taxi_zones()
-    if zones_gdf_test is not None:
-        _, manhattan_ids_test = filter_taxi_zones_by_borough(zones_gdf_test)
-
-        raw_taxi_data_test = load_taxi_trip_data()
-        if raw_taxi_data_test is not None:
-            cleaned_taxi_data_test = initial_trip_data_cleaning(raw_taxi_data_test)
-
-            if cleaned_taxi_data_test is not None and not cleaned_taxi_data_test.empty and manhattan_ids_test:
-                manhattan_trips_test = filter_trips_by_location_ids(cleaned_taxi_data_test, manhattan_ids_test)
-                if not manhattan_trips_test.empty:
-                    # median_hr_test, median_dow_test = calculate_median_speed_by_time(manhattan_trips_test)
-                    # print("\nMedian speed by hour (test):\n", median_hr_test)
-                    # print("\nMedian speed by day of week (test):\n", median_dow_test)
-
-                    ml_data_test = create_ml_training_data(manhattan_trips_test)
-                    if not ml_data_test.empty:
-                        print("\nDữ liệu huấn luyện ML (5 dòng đầu):")
-                        print(ml_data_test.head())
-                        print("\nThông tin dữ liệu ML:")
-                        ml_data_test.info()
-                        print("\nThống kê mô tả target:")
-                        print(ml_data_test['target_median_speed_mph'].describe())
+    # Nhóm dữ liệu để tính tốc độ trung vị (target)
+    # Bao gồm cả các đặc trưng mới trong groupby để giữ chúng lại
+    grouping_cols = [
+        'PULocationID', 'pickup_hour', 'pickup_day_of_week',
+        'hour_sin', 'hour_cos', 'day_sin', 'day_cos'
+    ]
+    df_zone_speed = df_ml.groupby(grouping_cols)['average_speed_mph'].median().reset_index()
+    
+    df_zone_speed.rename(columns={'average_speed_mph': 'target_median_speed_mph'}, inplace=True)
+    df_zone_speed.dropna(subset=['target_median_speed_mph'], inplace=True)
+    
+    print(f"Đã tạo được {len(df_zone_speed)} mẫu dữ liệu huấn luyện ML với các đặc trưng mới.")
+    
+    # Loại bỏ các cột thời gian gốc vì đã có biểu diễn sin/cos
+    # df_zone_speed = df_zone_speed.drop(columns=['pickup_hour', 'pickup_day_of_week'])
+    
+    return df_zone_speed
 

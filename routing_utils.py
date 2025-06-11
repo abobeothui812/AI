@@ -242,6 +242,3 @@ def calculate_eta_for_route(G_with_times, origin_node, destination_node):
         return None, None
 
 # --- Phần if __name__ == '__main__': không thay đổi nhiều, chỉ là cách gọi test ---
-
-if __name__ == "__main__":
-    print("File routing_utils.py đã chạy thành công!")

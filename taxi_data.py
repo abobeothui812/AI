@@ -1,5 +1,10 @@
-file_path = "yellow_tripdata_2025-01.parquet" # Đảm bảo file này tồn tại
+import pandas as pd
 
+# Thay thế bằng tên file bạn đã tải về
+# Ví dụ: nếu bạn tải file tháng 1 năm 2023 và lưu vào thư mục con 'data'
+# file_path = "data/yellow_tripdata_2023-01.parquet"
+# Hoặc nếu file nằm cùng thư mục với notebook của bạn:
+file_path = "yellow_tripdata_2025-01.parquet" # Đảm bảo file này tồn tại
 
 print(f"Đang đọc file: {file_path}...")
 try:

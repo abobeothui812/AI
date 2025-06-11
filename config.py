@@ -43,6 +43,3 @@ ROAD_TYPE_SPEED_MODIFIERS = {
 
 MODEL_PATH = "trained_rf_model.joblib"
 PREPROCESSOR_PATH = "data_preprocessor.joblib"
-
-if __name__ == "__main__":
-    print("File routing_utils.py đã chạy thành công!")
