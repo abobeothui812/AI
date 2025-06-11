@@ -1,18 +1,41 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
+  <component name="AutoImportSettings">
+    <option name="autoReloadType" value="SELECTIVE" />
+  </component>
   <component name="ChangeListManager">
-    <list default="true" id="9789fca3-195b-4c40-88be-ae118fb1ce58" name="Changes" comment="" />
+    <list default="true" id="9789fca3-195b-4c40-88be-ae118fb1ce58" name="Changes" comment="">
+      <change afterPath="$PROJECT_DIR$/data/nyc_taxi_zones/taxi_zones.dbf" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/data/nyc_taxi_zones/taxi_zones.prj" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/data/nyc_taxi_zones/taxi_zones.sbn" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/data/nyc_taxi_zones/taxi_zones.sbx" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/data/nyc_taxi_zones/taxi_zones.shp" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/data/nyc_taxi_zones/taxi_zones.shp.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/data/nyc_taxi_zones/taxi_zones.shx" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/data/yellow_tripdata_2025-01.parquet" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/data_processor.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/taxi_data.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/data_loader.py" beforeDir="false" afterPath="$PROJECT_DIR$/data_loader.py" afterDir="false" />
+    </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
     <option name="LAST_RESOLUTION" value="IGNORE" />
   </component>
+  <component name="FileTemplateManagerImpl">
+    <option name="RECENT_TEMPLATES">
+      <list>
+        <option value="Python Script" />
+      </list>
+    </option>
+  </component>
   <component name="Git.Settings">
     <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
   </component>
-  <component name="ProjectColorInfo"><![CDATA[{
-  "associatedIndex": 5
-}]]></component>
+  <component name="ProjectColorInfo">{
+  &quot;associatedIndex&quot;: 5
+}</component>
   <component name="ProjectId" id="2yH7SZZj25Q5m4Z3KlBUX9mRd1v" />
   <component name="ProjectViewState">
     <option name="hideEmptyMiddlePackages" value="true" />
@@ -22,9 +45,9 @@
   "keyToString": {
     "RunOnceActivity.ShowReadmeOnStart": "true",
     "RunOnceActivity.git.unshallow": "true",
-    "git-widget-placeholder": "main",
+    "git-widget-placeholder": "data/processing",
     "ignore.virus.scanning.warn.message": "true",
-    "last_opened_file_path": "D:/AI",
+    "last_opened_file_path": "D:/AI/data",
     "node.js.detected.package.eslint": "true",
     "node.js.detected.package.tslint": "true",
     "node.js.selected.package.eslint": "(autodetect)",
@@ -33,6 +56,11 @@
     "vue.rearranger.settings.migration": "true"
   }
 }]]></component>
+  <component name="RecentsManager">
+    <key name="CopyFile.RECENT_KEYS">
+      <recent name="D:\AI\data" />
+    </key>
+  </component>
   <component name="SharedIndexes">
     <attachedChunks>
       <set>
@@ -49,7 +77,8 @@
       <option name="number" value="Default" />
       <option name="presentableId" value="Default" />
       <updated>1749479646127</updated>
-      <workItem from="1749479647222" duration="295000" />
+      <workItem from="1749479647222" duration="1134000" />
+      <workItem from="1749534878544" duration="2900000" />
     </task>
     <servers />
   </component>
