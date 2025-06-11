@@ -4,20 +4,7 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="9789fca3-195b-4c40-88be-ae118fb1ce58" name="Changes" comment="">
-      <change afterPath="$PROJECT_DIR$/data/nyc_taxi_zones/taxi_zones.dbf" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/data/nyc_taxi_zones/taxi_zones.prj" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/data/nyc_taxi_zones/taxi_zones.sbn" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/data/nyc_taxi_zones/taxi_zones.sbx" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/data/nyc_taxi_zones/taxi_zones.shp" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/data/nyc_taxi_zones/taxi_zones.shp.xml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/data/nyc_taxi_zones/taxi_zones.shx" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/data/yellow_tripdata_2025-01.parquet" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/data_processor.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/taxi_data.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/data_loader.py" beforeDir="false" afterPath="$PROJECT_DIR$/data_loader.py" afterDir="false" />
-    </list>
+    <list default="true" id="9789fca3-195b-4c40-88be-ae118fb1ce58" name="Changes" comment="" />
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
@@ -37,6 +24,9 @@
   &quot;associatedIndex&quot;: 5
 }</component>
   <component name="ProjectId" id="2yH7SZZj25Q5m4Z3KlBUX9mRd1v" />
+  <component name="ProjectLevelVcsManager">
+    <ConfirmationsSetting value="2" id="Add" />
+  </component>
   <component name="ProjectViewState">
     <option name="hideEmptyMiddlePackages" value="true" />
     <option name="showLibraryContents" value="true" />
@@ -47,7 +37,7 @@
     "RunOnceActivity.git.unshallow": "true",
     "git-widget-placeholder": "data/processing",
     "ignore.virus.scanning.warn.message": "true",
-    "last_opened_file_path": "D:/AI/data",
+    "last_opened_file_path": "D:/AI",
     "node.js.detected.package.eslint": "true",
     "node.js.detected.package.tslint": "true",
     "node.js.selected.package.eslint": "(autodetect)",
@@ -79,6 +69,7 @@
       <updated>1749479646127</updated>
       <workItem from="1749479647222" duration="1134000" />
       <workItem from="1749534878544" duration="2900000" />
+      <workItem from="1749600931009" duration="351000" />
     </task>
     <servers />
   </component>
